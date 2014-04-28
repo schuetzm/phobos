@@ -4830,7 +4830,9 @@ template Utf8Matcher()
             else
             {
                 static assert(mode == Mode.skipOnMatch);
-                return tab!size[needle] && (inp.popFrontN(size), true);
+                if(tab!size[needle])
+                    inp.popFrontN(size);
+                return tab!size[needle];
             }
         }
     }
@@ -4911,8 +4913,16 @@ template Utf16Matcher()
             assert(!inp.empty);
             auto ch = inp[0];
             static if(sizeFlags & 1)
-                return ch < 0x80 ? ascii[ch] && (inp.popFront(), true)
-                    : lookupUni!mode(inp);
+            {
+                if(ch < 0x80)
+                {
+                    if(ascii[ch])
+                        inp.popFront();
+                    return ascii[ch];
+                }
+                else
+                    return lookupUni!mode(inp);
+            }
             else
                 return lookupUni!mode(inp);
         }
@@ -5007,7 +5017,11 @@ template Utf16Matcher()
                     static if(mode == Mode.alwaysSkip)                       
                         inp.popFront();
                     static if(mode == Mode.skipOnMatch)
-                        return bmp[ch] && (inp.popFront(), true);
+                    {
+                        if(bmp[ch])
+                            inp.popFront();
+                        return bmp[ch];
+                    }
                     else
                         return bmp[ch];
                 }
@@ -5028,7 +5042,11 @@ template Utf16Matcher()
                     static if(mode == Mode.alwaysSkip)
                         inp.popFrontN(2);
                     static if(mode == Mode.skipOnMatch)
-                        return uni[needle] && (inp.popFrontN(2), true);
+                    {
+                        if(uni[needle])
+                            inp.popFrontN(2);
+                        return uni[needle];
+                    }
                     else
                         return uni[needle];
                 }
